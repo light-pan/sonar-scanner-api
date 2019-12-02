@@ -36,7 +36,8 @@ class BootstrapIndexDownloader {
     String index;
     try {
       logger.debug("Get bootstrap index...");
-      index = conn.downloadString("/batch/index");
+//      index = conn.downloadString("/batch/index");
+      index = "sonar-scanner-engine-shaded-6.7.5.jar|b0adf9a18d24df15b18fbd573f454389";
       logger.debug("Get bootstrap completed");
     } catch (Exception e) {
       throw new IllegalStateException("Fail to get bootstrap index from server", e);

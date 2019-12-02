@@ -23,8 +23,9 @@
     <dependency>
       <groupId>org.sonarsource.sonarqube</groupId>
       <artifactId>sonar-scanner-engine</artifactId>
-      <version>${sonarQubeVersion}</version>
-      <scope>provided</scope>
+<!--      <version>${sonarQubeVersion}</version>-->
+      <version>6.7.5</version>
+<!--      <scope>provided</scope>-->
     </dependency>
 
     <!-- Unit tests -->

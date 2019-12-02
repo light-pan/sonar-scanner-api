@@ -80,15 +80,27 @@ public class FileCache {
     Path hashDir = hashDir(hash);
     Path targetFile = hashDir.resolve(filename);
     if (!Files.exists(targetFile)) {
-      Path tempFile = newTempFile();
-      download(downloader, filename, tempFile);
-      String downloadedHash = hashes.of(tempFile.toFile());
-      if (!hash.equals(downloadedHash)) {
-        throw new IllegalStateException("INVALID HASH: File " + tempFile.toAbsolutePath() + " was expected to have hash " + hash
-          + " but was downloaded with hash " + downloadedHash);
+//      Path tempFile = newTempFile();
+//      download(downloader, filename, tempFile);
+//      String downloadedHash = hashes.of(tempFile.toFile());
+      String filePath = "/Users/lightpan/code/java/jar/" + filename;
+      File file = new File(filePath);
+      String realHash = hashes.of(file);
+      if (!hash.equals(realHash)) {
+        throw new IllegalStateException("INVALID HASH: File " + filePath + " was expected to have hash " + hash
+          + " but was downloaded with hash " + realHash);
       }
+//      if (!hash.equals(downloadedHash)) {
+//        throw new IllegalStateException("INVALID HASH: File " + tempFile.toAbsolutePath() + " was expected to have hash " + hash
+//          + " but was downloaded with hash " + downloadedHash);
+//      }
       mkdirQuietly(hashDir);
-      renameQuietly(tempFile, targetFile);
+//      renameQuietly(tempFile, targetFile);
+      try {
+        Files.copy(file.toPath(), targetFile);
+      } catch (IOException e) {
+        throw new IllegalStateException("Fail to copy " + filePath + " to " + targetFile.toString(), e);
+      }
     }
     return targetFile.toFile();
   }
