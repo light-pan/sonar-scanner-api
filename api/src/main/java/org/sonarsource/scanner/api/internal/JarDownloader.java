@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.sonarsource.scanner.api.internal.BootstrapIndexDownloader.JarEntry;
 import org.sonarsource.scanner.api.internal.cache.FileCache;
@@ -35,15 +36,15 @@ class JarDownloader {
   private final FileCache fileCache;
   private final JarExtractor jarExtractor;
   private final Logger logger;
-  private final ScannerFileDownloader scannerFileDownloader;
   private final BootstrapIndexDownloader bootstrapIndexDownloader;
+  private final Map<String, String> props;
 
-  JarDownloader(ScannerFileDownloader scannerFileDownloader, BootstrapIndexDownloader bootstrapIndexDownloader, FileCache fileCache, JarExtractor jarExtractor, Logger logger) {
-    this.scannerFileDownloader = scannerFileDownloader;
+  JarDownloader(BootstrapIndexDownloader bootstrapIndexDownloader, FileCache fileCache, JarExtractor jarExtractor, Logger logger,Map<String, String> props) {
     this.bootstrapIndexDownloader = bootstrapIndexDownloader;
     this.logger = logger;
     this.fileCache = fileCache;
     this.jarExtractor = jarExtractor;
+    this.props = props;
   }
 
   List<File> download() {
@@ -57,7 +58,7 @@ class JarDownloader {
   private List<File> getScannerEngineFiles() {
     Collection<JarEntry> index = bootstrapIndexDownloader.getIndex();
     return index.stream()
-      .map(jar -> fileCache.get(jar.getFilename(), jar.getHash(), scannerFileDownloader))
+      .map(jar -> fileCache.get(jar.getFilename(), jar.getHash(), props))
       .collect(Collectors.toList());
   }
 

@@ -22,15 +22,18 @@ package org.sonarsource.scanner.api.internal;
 import org.junit.Test;
 import org.sonarsource.scanner.api.internal.cache.Logger;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class JarDownloaderFactoryTest {
   @Test
   public void should_create() {
-    ServerConnection conn = mock(ServerConnection.class);
     Logger logger = mock(Logger.class);
     String userHome = "userhome";
-    assertThat(new JarDownloaderFactory(conn, logger, userHome).create()).isNotNull();
+    Map<String, String > props = new HashMap<>();
+    assertThat(new JarDownloaderFactory(logger, userHome,props).create()).isNotNull();
   }
 }

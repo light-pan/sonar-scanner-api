@@ -20,9 +20,8 @@
 package org.sonarsource.scanner.api.internal;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,8 +46,6 @@ import static org.mockito.Mockito.when;
 public class JarDownloaderTest {
   @Mock
   private BootstrapIndexDownloader bootstrapIndexDownloader;
-  @Mock
-  private ScannerFileDownloader scannerFileDownloader;
   @Mock
   private JarExtractor jarExtractor;
   @Mock
@@ -76,14 +73,14 @@ public class JarDownloaderTest {
 
     // index of the files to download
     when(bootstrapIndexDownloader.getIndex()).thenReturn(jars);
-
-    JarDownloader jarDownloader = new JarDownloader(scannerFileDownloader, bootstrapIndexDownloader, fileCache, jarExtractor, mock(Logger.class));
+    Map<String, String > props = new HashMap<>();
+    JarDownloader jarDownloader = new JarDownloader(bootstrapIndexDownloader, fileCache, jarExtractor, mock(Logger.class), props);
     List<File> files = jarDownloader.download();
 
     assertThat(files).isNotNull();
     verify(bootstrapIndexDownloader).getIndex();
-    verify(fileCache, times(1)).get(eq("cpd.jar"), eq("CA124VADFSDS"), any(FileCache.Downloader.class));
-    verify(fileCache, times(1)).get(eq("squid.jar"), eq("34535FSFSDF"), any(FileCache.Downloader.class));
+    verify(fileCache, times(1)).get(eq("cpd.jar"), eq("CA124VADFSDS"), props);
+    verify(fileCache, times(1)).get(eq("squid.jar"), eq("34535FSFSDF"), props);
     verifyNoMoreInteractions(fileCache);
   }
 

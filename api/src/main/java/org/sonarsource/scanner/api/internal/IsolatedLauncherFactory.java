@@ -64,9 +64,7 @@ public class IsolatedLauncherFactory implements Closeable {
       }
       return new SimulatedLauncher(version, logger);
     }
-    ServerConnection serverConnection = ServerConnection.create(props, logger);
-    JarDownloader jarDownloader = new JarDownloaderFactory(serverConnection, logger, props.get("sonar.userHome")).create();
-
+    JarDownloader jarDownloader = new JarDownloaderFactory(logger, props.get("sonar.userHome"), props).create();
     return createLauncher(jarDownloader, rules);
   }
 

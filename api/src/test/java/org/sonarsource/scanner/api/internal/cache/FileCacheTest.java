@@ -23,6 +23,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,14 +71,10 @@ public class FileCacheTest {
   public void fail_to_download() {
     when(fileHashes.of(any(File.class))).thenReturn("ABCDE");
 
-    FileCache.Downloader downloader = new FileCache.Downloader() {
-      public void download(String filename, File toFile) throws IOException {
-        throw new IOException("fail");
-      }
-    };
+    Map<String, String> props = new HashMap<>();
     thrown.expect(IllegalStateException.class);
     thrown.expectMessage("Fail to download");
-    cache.get("sonar-foo-plugin-1.5.jar", "ABCDE", downloader);
+    cache.get("sonar-foo-plugin-1.5.jar", "ABCDE", props);
   }
 
   @Test
@@ -84,7 +83,7 @@ public class FileCacheTest {
     new File(temp.getRoot(), "_tmp").delete();
     thrown.expect(IllegalStateException.class);
     thrown.expectMessage("Fail to create temp file");
-    cache.get("sonar-foo-plugin-1.5.jar", "ABCDE", mock(FileCache.Downloader.class));
+    cache.get("sonar-foo-plugin-1.5.jar", "ABCDE");
   }
 
   @Test
@@ -103,31 +102,21 @@ public class FileCacheTest {
     hashDir.createNewFile();
     thrown.expect(IllegalStateException.class);
     thrown.expectMessage("Fail to create cache directory");
-    cache.get("sonar-foo-plugin-1.5.jar", "ABCDE", mock(FileCache.Downloader.class));
+    cache.get("sonar-foo-plugin-1.5.jar", "ABCDE");
   }
 
   @Test
   public void download_and_add_to_cache() throws IOException {
     when(fileHashes.of(any(File.class))).thenReturn("ABCDE");
 
-    FileCache.Downloader downloader = new FileCache.Downloader() {
-      boolean single = false;
-
-      public void download(String filename, File toFile) throws IOException {
-        if (single) {
-          throw new IllegalStateException("Already called");
-        }
-        write(toFile, "body");
-        single = true;
-      }
-    };
-    File cachedFile = cache.get("sonar-foo-plugin-1.5.jar", "ABCDE", downloader);
+    Map<String, String> props = new HashMap<>();
+    File cachedFile = cache.get("sonar-foo-plugin-1.5.jar", "ABCDE", props);
     assertThat(cachedFile).isNotNull().exists().isFile();
     assertThat(cachedFile.getName()).isEqualTo("sonar-foo-plugin-1.5.jar");
     assertThat(cachedFile.getParentFile().getParentFile()).isEqualTo(cache.getDir());
     assertThat(read(cachedFile)).isEqualTo("body");
 
-    File againFromCache = cache.get("sonar-foo-plugin-1.5.jar", "ABCDE", downloader);
+    File againFromCache = cache.get("sonar-foo-plugin-1.5.jar", "ABCDE", props);
     assertThat(againFromCache).isNotNull().exists().isFile();
     assertThat(againFromCache.getName()).isEqualTo("sonar-foo-plugin-1.5.jar");
     assertThat(againFromCache.getParentFile().getParentFile()).isEqualTo(cache.getDir());
@@ -141,30 +130,18 @@ public class FileCacheTest {
 
     when(fileHashes.of(any(File.class))).thenReturn("VWXYZ");
 
-    FileCache.Downloader downloader = new FileCache.Downloader() {
-      public void download(String filename, File toFile) throws IOException {
-        write(toFile, "corrupted body");
-      }
-    };
-    cache.get("sonar-foo-plugin-1.5.jar", "ABCDE", downloader);
+    Map<String, String> props = new HashMap<>();
+    cache.get("sonar-foo-plugin-1.5.jar", "ABCDE", props);
   }
 
   @Test
   public void concurrent_download() throws IOException {
     when(fileHashes.of(any(File.class))).thenReturn("ABCDE");
 
-    FileCache.Downloader downloader = new FileCache.Downloader() {
-      public void download(String filename, File toFile) throws IOException {
-        // Emulate a concurrent download that adds file to cache before
-        File cachedFile = new File(new File(cache.getDir(), "ABCDE"), "sonar-foo-plugin-1.5.jar");
-        write(cachedFile, "downloaded by other");
-
-        write(toFile, "downloaded by me");
-      }
-    };
+    Map<String, String> props = new HashMap<>();
 
     // do not fail
-    File cachedFile = cache.get("sonar-foo-plugin-1.5.jar", "ABCDE", downloader);
+    File cachedFile = cache.get("sonar-foo-plugin-1.5.jar", "ABCDE", props);
     assertThat(cachedFile).isNotNull().exists().isFile();
     assertThat(cachedFile.getName()).isEqualTo("sonar-foo-plugin-1.5.jar");
     assertThat(cachedFile.getParentFile().getParentFile()).isEqualTo(cache.getDir());

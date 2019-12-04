@@ -26,6 +26,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Map;
 import javax.annotation.CheckForNull;
 
 /**
@@ -75,27 +76,19 @@ public class FileCache {
     void download(String filename, File toFile) throws IOException;
   }
 
-  public File get(String filename, String hash, Downloader downloader) {
+  public File get(String filename, String hash, Map<String, String> props) {
     // Does not fail if another process tries to create the directory at the same time.
     Path hashDir = hashDir(hash);
     Path targetFile = hashDir.resolve(filename);
     if (!Files.exists(targetFile)) {
-//      Path tempFile = newTempFile();
-//      download(downloader, filename, tempFile);
-//      String downloadedHash = hashes.of(tempFile.toFile());
-      String filePath = "/Users/lightpan/code/java/jar/" + filename;
+      String filePath = props.get("sonar.jarDir") + File.separator  + filename;
       File file = new File(filePath);
       String realHash = hashes.of(file);
       if (!hash.equals(realHash)) {
         throw new IllegalStateException("INVALID HASH: File " + filePath + " was expected to have hash " + hash
-          + " but was downloaded with hash " + realHash);
+          + " but was exist with hash " + realHash);
       }
-//      if (!hash.equals(downloadedHash)) {
-//        throw new IllegalStateException("INVALID HASH: File " + tempFile.toAbsolutePath() + " was expected to have hash " + hash
-//          + " but was downloaded with hash " + downloadedHash);
-//      }
       mkdirQuietly(hashDir);
-//      renameQuietly(tempFile, targetFile);
       try {
         Files.copy(file.toPath(), targetFile);
       } catch (IOException e) {
@@ -103,14 +96,6 @@ public class FileCache {
       }
     }
     return targetFile.toFile();
-  }
-
-  private static void download(Downloader downloader, String filename, Path tempFile) {
-    try {
-      downloader.download(filename, tempFile.toFile());
-    } catch (IOException e) {
-      throw new IllegalStateException("Fail to download " + filename + " to " + tempFile, e);
-    }
   }
 
   private void renameQuietly(Path sourceFile, Path targetFile) {

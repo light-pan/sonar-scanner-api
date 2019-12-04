@@ -25,24 +25,25 @@ import org.sonarsource.scanner.api.internal.cache.FileCache;
 import org.sonarsource.scanner.api.internal.cache.FileCacheBuilder;
 import org.sonarsource.scanner.api.internal.cache.Logger;
 
+import java.util.Map;
+
 class JarDownloaderFactory {
-  private final ServerConnection serverConnection;
   private final Logger logger;
   private final String userHome;
+  private final Map<String, String> props;
 
-  JarDownloaderFactory(ServerConnection conn, Logger logger, @Nullable String userHome) {
-    this.serverConnection = conn;
+  JarDownloaderFactory(Logger logger, @Nullable String userHome, Map<String, String> props) {
     this.logger = logger;
     this.userHome = userHome;
+    this.props = props;
   }
 
   JarDownloader create() {
     FileCache fileCache = new FileCacheBuilder(logger)
       .setUserHome(userHome)
       .build();
-    BootstrapIndexDownloader bootstrapIndexDownloader = new BootstrapIndexDownloader(serverConnection, logger);
-    ScannerFileDownloader scannerFileDownloader = new ScannerFileDownloader(serverConnection);
+    BootstrapIndexDownloader bootstrapIndexDownloader = new BootstrapIndexDownloader(logger);
     JarExtractor jarExtractor = new JarExtractor();
-    return new JarDownloader(scannerFileDownloader, bootstrapIndexDownloader, fileCache, jarExtractor, logger);
+    return new JarDownloader(bootstrapIndexDownloader, fileCache, jarExtractor, logger, props);
   }
 }
